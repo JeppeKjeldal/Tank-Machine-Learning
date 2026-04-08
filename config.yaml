@@ -2,7 +2,7 @@ behaviors:
   MoveAgent:
     trainer_type: ppo
 
-    max_steps: 200
+    max_steps: 20000
     time_horizon: 64
     summary_freq: 10000
 

@@ -22,7 +22,7 @@ public class MoveAgent : Agent
         transform.localPosition = Vector3.zero;
         rb.linearVelocity = Vector2.zero;
 
-        goal.localPosition = new Vector3(
+        transform.localPosition = new Vector3(
             Random.Range(-4f, 4f),
             0.5f,
             Random.Range(-4f, 4f)
@@ -51,7 +51,12 @@ public class MoveAgent : Agent
         rb.linearVelocity = new Vector2(moveX, moveY) * moveSpeed;
 
         Debug.Log($"Step called: moveX={moveX}, moveY={moveY}");
-        AddReward(-0.001f); // tiny negative reward per step to encourage movement
+        float distanceToGoal = Vector3.Distance(transform.localPosition, goal.localPosition);
+
+        // Reward for moving closer to the goal
+        AddReward(0.01f * (1f - distanceToGoal / 10f));
+        
+        // AddReward(-0.001f); // tiny negative reward per step to encourage movement
     }
 
     // public override void OnActionReceived(ActionBuffers actions)
