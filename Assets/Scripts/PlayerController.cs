@@ -42,4 +42,20 @@ public class PlayerController : MonoBehaviour
     {
         rigidBody.MovePosition(rigidBody.position + movementDirection * (moveSpeed * Time.fixedDeltaTime));
     }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        Debug.Log("Collided with: " + collision.gameObject.name);
+    }
+
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        // Called every frame while touching something
+        // Debug.Log("Still touching: " + collision.gameObject.name);
+    }
+
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        //Debug.Log("Stopped colliding with: " + collision.gameObject.name);
+    }
 }
