@@ -1,11 +1,17 @@
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-    private float moveSpeed = 5f;
+    [SerializeField] private float moveSpeed = 5f;
+    [SerializeField] private float bulletSpeed = 10.0f;
+    [SerializeField] private GameObject bulletPrefab;
+    [SerializeField] private Transform bulletSpawnPoint;
+
     private PlayerControls playerControls;
     private Rigidbody2D rigidBody;
-    private Vector2 movementDirection;
+
+    private float moveInput;
 
     private void Awake()
     {
@@ -16,16 +22,22 @@ public class PlayerController : MonoBehaviour
     private void OnEnable()
     {
         playerControls.Enable();
+
+        playerControls.Movement.Rotate.performed += OnRotate;
+        playerControls.Movement.Shoot.performed += OnShoot;
     }
 
     private void OnDisable()
     {
+        playerControls.Movement.Rotate.performed -= OnRotate;
+        playerControls.Movement.Shoot.performed -= OnShoot;
+
         playerControls.Disable();
     }
 
     private void Update()
     {
-        PlayerInput();
+        moveInput = playerControls.Movement.ForwardBackward.ReadValue<float>();
     }
 
     private void FixedUpdate()
@@ -33,13 +45,38 @@ public class PlayerController : MonoBehaviour
         Move();
     }
 
-    private void PlayerInput()
-    {
-        movementDirection = playerControls.Movement.Move.ReadValue<Vector2>();
-    }
-
     private void Move()
     {
-        rigidBody.MovePosition(rigidBody.position + movementDirection * (moveSpeed * Time.fixedDeltaTime));
+        Vector2 moveAmount = (Vector2)transform.up * moveInput * moveSpeed * Time.fixedDeltaTime;
+        rigidBody.MovePosition(rigidBody.position + moveAmount);
+    }
+
+    // 🔄 Rotate exactly 90 degrees per key press
+    private void OnRotate(InputAction.CallbackContext context)
+    {
+        float input = context.ReadValue<float>();
+
+        if (input > 0)
+        {
+            Rotate90(-90f);
+        }
+        else if (input < 0)
+        {
+            Rotate90(90f);
+        }
+    }
+
+    private void Rotate90(float angle)
+    {
+        float newRotation = rigidBody.rotation + angle;
+        rigidBody.MoveRotation(newRotation);
+    }
+
+    private void OnShoot(InputAction.CallbackContext context)
+    {
+        GameObject bullet = Instantiate(bulletPrefab, bulletSpawnPoint.position, bulletSpawnPoint.rotation);
+
+        Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
+        rb.linearVelocity = bulletSpawnPoint.up * bulletSpeed;
     }
 }
