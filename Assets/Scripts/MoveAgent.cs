@@ -51,12 +51,4 @@ public class MoveAgent : Agent
 
         AddReward(0.01f * (1f - distanceToGoal / 10f));
     }
-
-    public override void Heuristic(in ActionBuffers actionsOut)
-    {
-        Debug.Log(" Heuristics initialized");
-        var c = actionsOut.ContinuousActions;
-        c[0] = Input.GetAxisRaw("Horizontal");
-        c[1] = Input.GetAxisRaw("Vertical");
-    }
 }
