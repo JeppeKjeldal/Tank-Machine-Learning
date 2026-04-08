@@ -1,0 +1,17 @@
+behaviors:
+  MoveAgent:
+    trainer_type: ppo
+
+    max_steps: 20000
+    time_horizon: 64
+    summary_freq: 10000
+
+    network_settings:
+      normalize: false
+      hidden_layers: 2
+      hidden_units: 128
+
+    reward_signals:
+      extrinsic:
+        gamma: 0.99
+        strength: 1.0
