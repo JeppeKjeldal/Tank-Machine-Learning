@@ -12,12 +12,12 @@ public class MoveAgent : Agent
     public override void Initialize()
     {
         rb = GetComponent<Rigidbody2D>();
-        Debug.Log("Agent initialized");
+        // Debug.Log("Agent initialized");
     }
 
     public override void OnEpisodeBegin()
     {
-        Debug.Log("Episode initialized");
+        // Debug.Log("Episode initialized");
         // Reset position each episode
         transform.localPosition = Vector3.zero;
         rb.linearVelocity = Vector2.zero;
@@ -28,52 +28,66 @@ public class MoveAgent : Agent
             Random.Range(-4f, 4f)
         );
 
-        Debug.Log("Episode started, goal at " + goal.localPosition);
+        // Debug.Log("Episode started, goal at " + goal.localPosition);
     }
 
     public override void CollectObservations(VectorSensor sensor)
     {
-        Debug.Log("Observations Collected");
+        // Debug.Log("Observations Collected");
         // Observe the agent’s position
-        // sensor.AddObservation(transform.localPosition);
-        // sensor.AddObservation(goal.localPosition);
+        sensor.AddObservation(transform.localPosition);
+        sensor.AddObservation(goal.localPosition);
         Vector3 toGoal = goal.localPosition - transform.localPosition;
         sensor.AddObservation(toGoal);
     }
 
     public override void OnActionReceived(ActionBuffers actions)
     {
-        Debug.Log("Step called");
-        // If no actions from Python, fallback to random actions
+        // Debug.Log("Step called");
         float moveX = actions.ContinuousActions[0];
         float moveY = actions.ContinuousActions[1];
 
         rb.linearVelocity = new Vector2(moveX, moveY) * moveSpeed;
 
-        Debug.Log($"Step called: moveX={moveX}, moveY={moveY}");
+        // Debug.Log($"Step called: moveX={moveX}, moveY={moveY}");
         float distanceToGoal = Vector3.Distance(transform.localPosition, goal.localPosition);
 
         // Reward for moving closer to the goal
-        AddReward(0.01f * (1f - distanceToGoal / 10f));
-        
-        // AddReward(-0.001f); // tiny negative reward per step to encourage movement
+        // Debug.Log(1 * (1f - distanceToGoal / 10f));
+        AddReward(1 * (1f - distanceToGoal / 10f));
+
+        // --- SUCCESS CHECK GOES HERE ---
+        if (distanceToGoal < 10f)
+        {
+            AddReward(50f);
+            // EndEpisode();
+            return;
+        }  
+        else if (distanceToGoal < 4f)
+        {
+            AddReward(100f);
+            // EndEpisode();
+            return;
+        }    
+        else if (distanceToGoal < 2f)
+        {
+            AddReward(200f);
+            // EndEpisode();
+            return;
+        }    
+        else if (distanceToGoal < 1f)
+        {
+            AddReward(400f);
+            // EndEpisode();
+            return;
+        }    
+        else if (distanceToGoal < 0.5f)
+        {
+            AddReward(800f);
+            // EndEpisode();
+            return;
+        }        
     }
-
-    // public override void OnActionReceived(ActionBuffers actions)
-    // {
-    //     float moveX = actions.ContinuousActions[0];
-    //     float moveY = actions.ContinuousActions[1];
-
-    //     rb.linearVelocity = new Vector2(moveX, moveY) * moveSpeed;
-
-    //     // Small reward for staying alive / moving
-    //     AddReward(2f);
-    //     // float distanceToGoal = Vector3.Distance(transform.localPosition, goal.localPosition);
-
-    //     // // Reward for moving closer to the goal
-    //     // AddReward(0.01f * (1f - distanceToGoal / 10f));
-    //     Debug.Log("Reward given for moving: " + 2f);
-    // }
 
     public override void Heuristic(in ActionBuffers actionsOut)
     {
@@ -83,21 +97,21 @@ public class MoveAgent : Agent
         c[1] = Input.GetAxisRaw("Vertical");
     }
 
-    // private void OnTriggerEnter2D(Collider2D collision)
-    // {
-    //     if (collision.CompareTag("Player"))
-    //     {
-    //         AddReward(1f);
-    //         Debug.Log("Stopped");
-    //         EndEpisode();
-    //     }
-    // }   
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Player"))
+        {
+            AddReward(1000f);
+            Debug.Log("collided with player");
+            EndEpisode();
+        }
+    }   
 
-    // private void OnCollisionEnter2D(Collision2D collision)
-    // {
-    //     if (collision.gameObject.CompareTag("Wall"))
-    //     {
-    //         AddReward(-0.5f);
-    //     }
-    // }
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Wall"))
+        {
+            AddReward(-3f);
+        }
+    }
 }

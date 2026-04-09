@@ -2,12 +2,12 @@ behaviors:
   MoveAgent:
     trainer_type: ppo
 
-    max_steps: 20000
-    time_horizon: 64
-    summary_freq: 10000
+    max_steps: 200000
+    time_horizon: 128
+    summary_freq: 1000
 
     network_settings:
-      normalize: false
+      normalize: true
       hidden_layers: 2
       hidden_units: 128
 
