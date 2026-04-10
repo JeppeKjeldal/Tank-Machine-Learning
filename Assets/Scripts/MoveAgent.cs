@@ -8,6 +8,7 @@ public class MoveAgent : Agent
     public float moveSpeed = 5f;
     private Rigidbody2D rb;
     public Transform goal;
+    private float lastDistance;
 
     public override void Initialize()
     {
@@ -19,6 +20,7 @@ public class MoveAgent : Agent
     {
         // Debug.Log("Episode initialized");
         // Reset position each episode
+        lastDistance = Vector3.Distance(transform.localPosition, goal.localPosition);
         transform.localPosition = Vector3.zero;
         rb.linearVelocity = Vector2.zero;
 
@@ -43,75 +45,43 @@ public class MoveAgent : Agent
 
     public override void OnActionReceived(ActionBuffers actions)
     {
-        // Debug.Log("Step called");
         float moveX = actions.ContinuousActions[0];
         float moveY = actions.ContinuousActions[1];
 
         rb.linearVelocity = new Vector2(moveX, moveY) * moveSpeed;
 
-        // Debug.Log($"Step called: moveX={moveX}, moveY={moveY}");
-        float distanceToGoal = Vector3.Distance(transform.localPosition, goal.localPosition);
+        float distance = Vector3.Distance(transform.localPosition, goal.localPosition);
 
-        // Reward for moving closer to the goal
-        // Debug.Log(1 * (1f - distanceToGoal / 10f));
-        AddReward(1 * (1f - distanceToGoal / 10f));
+        // Dense reward: reward reduction in distance since last step
+        float progress = lastDistance - distance;
+        AddReward(progress * 2f);
+        lastDistance = distance;
 
-        // --- SUCCESS CHECK GOES HERE ---
-        if (distanceToGoal < 10f)
+        // Optional small penalty for existing (stops idling)
+        AddReward(-0.001f);
+
+        // Success condition
+        if (distance < 0.5f)
         {
-            AddReward(50f);
-            // EndEpisode();
-            return;
-        }  
-        else if (distanceToGoal < 4f)
-        {
-            AddReward(100f);
-            // EndEpisode();
-            return;
-        }    
-        else if (distanceToGoal < 2f)
-        {
-            AddReward(200f);
-            // EndEpisode();
-            return;
-        }    
-        else if (distanceToGoal < 1f)
-        {
-            AddReward(400f);
-            // EndEpisode();
-            return;
-        }    
-        else if (distanceToGoal < 0.5f)
-        {
-            AddReward(800f);
-            // EndEpisode();
-            return;
-        }        
+            AddReward(5f);
+            EndEpisode();
+        }
     }
 
-    public override void Heuristic(in ActionBuffers actionsOut)
+    private void OnCollisionEnter2D(Collision2D collision)
     {
-        Debug.Log(" Heuristics initialized");
-        var c = actionsOut.ContinuousActions;
-        c[0] = Input.GetAxisRaw("Horizontal");
-        c[1] = Input.GetAxisRaw("Vertical");
-    }
-
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.CompareTag("Player"))
+        if (collision.gameObject.CompareTag("Player"))
         {
             AddReward(1000f);
             Debug.Log("collided with player");
             EndEpisode();
         }
-    }   
 
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
         if (collision.gameObject.CompareTag("Wall"))
         {
-            AddReward(-3f);
+            AddReward(-1000f);
+            Debug.Log("collided with wall, ending.");
+            EndEpisode();
         }
-    }
+    }   
 }
