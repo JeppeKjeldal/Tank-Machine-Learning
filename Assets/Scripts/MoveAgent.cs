@@ -68,6 +68,14 @@ public class MoveAgent : Agent
         }
     }
 
+    public override void Heuristic(in ActionBuffers actionsOut)
+    {
+        Debug.Log(" Heuristics initialized");
+        var c = actionsOut.ContinuousActions;
+        c[0] = Input.GetAxisRaw("Horizontal");
+        c[1] = Input.GetAxisRaw("Vertical");
+    }
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Player"))

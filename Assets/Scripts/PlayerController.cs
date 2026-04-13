@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
@@ -11,6 +12,8 @@ public class PlayerController : MonoBehaviour
     {
         rigidBody = GetComponent<Rigidbody2D>();
         playerControls = new PlayerControls();
+
+        playerControls.Movement.Shoot.performed += OnShoot;
     }
 
     private void OnEnable()
@@ -41,6 +44,11 @@ public class PlayerController : MonoBehaviour
     private void Move()
     {
         rigidBody.MovePosition(rigidBody.position + movementDirection * (moveSpeed * Time.fixedDeltaTime));
+    }
+
+    private void OnShoot(InputAction.CallbackContext context)
+    {
+        Debug.Log("bob is shooting");
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
