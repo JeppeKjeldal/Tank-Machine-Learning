@@ -10,6 +10,7 @@ public class MoveAgent : Agent
     public Transform player;
     public TankWeapon weapon;
     private float lastDistance;
+    private bool wasSeeingPlayer;
 
     public override void Initialize()
     {
@@ -23,30 +24,40 @@ public class MoveAgent : Agent
         // Debug.Log("Episode initialized");
         // Reset position each episode
         lastDistance = Vector3.Distance(transform.position, player.position);
-        transform.localPosition = Vector3.zero;
+        transform.position = Vector3.zero;
         rb.linearVelocity = Vector2.zero;
 
-        transform.localPosition = new Vector3(
-            Random.Range(-1f, 1f),
-            0.5f,
-            Random.Range(-1f, 1f)
+        transform.position = new Vector3(
+            Random.Range(-8f, 8f),
+            Random.Range(-4f, 4f),
+            Random.Range(0, 0)
+        );
+
+        player.transform.position = new Vector3(
+            Random.Range(-8f, 8f),
+            Random.Range(-4f, 4f),
+            Random.Range(0,0)
         );
     }
 
     public override void CollectObservations(VectorSensor sensor)
     {
-        // Debug.Log("Observations Collected");
-        // Observe the agent’s position
-        sensor.AddObservation(transform.position);
+        Vector2 myPos = transform.position; 
+        Vector2 enemyPos = player.position;
+        Vector2 delta = enemyPos - myPos;
 
+        sensor.AddObservation(myPos); //own position
         sensor.AddObservation(rb.linearVelocity); //helps stabilize jitter movement
-        
-        Vector3 toEnemy = (player.position - transform.position).normalized;
-        sensor.AddObservation(toEnemy);
 
-        sensor.AddObservation(weapon.turretPivot.up);
-        sensor.AddObservation(weapon.CanShoot ? 1f : 0f); // observer shooting cooldown, The 1 and 0 are just signals to the neural network, not time values.
+        sensor.AddObservation(delta.normalized);        // direction
+        sensor.AddObservation(delta.magnitude / 10f);   // distance
 
+        sensor.AddObservation((Vector2)weapon.turretPivot.up);
+
+        sensor.AddObservation(weapon.CanShoot ? 1f : 0f); //observer shooting cooldown, The 1 and 0 are just signals to the neural network, not time values.
+
+        sensor.AddObservation(CanSeePlayer() ? 1f : 0f);
+    
     }
 
     public override void OnActionReceived(ActionBuffers actions)
@@ -56,6 +67,16 @@ public class MoveAgent : Agent
         
         int rotate = actions.DiscreteActions[1];
         int shoot = actions.DiscreteActions[0];
+
+        bool seesPlayer = CanSeePlayer();
+
+        if (seesPlayer && !wasSeeingPlayer)
+        {
+            // Debug.Log("AI SEES PLAYER.............");
+            AddReward(0.05f); // only on first sight
+        }
+
+        wasSeeingPlayer = seesPlayer;
 
         switch (rotate)
         {
@@ -101,16 +122,32 @@ public class MoveAgent : Agent
         }
     }
 
-    public override void Heuristic(in ActionBuffers actionsOut)
+    // public override void Heuristic(in ActionBuffers actionsOut)
+    // {
+    //     Debug.Log(" Heuristics initialized");
+    //     var c = actionsOut.ContinuousActions;
+    //     var d = actionsOut.DiscreteActions;
+
+    //     c[0] = Input.GetAxisRaw("Horizontal");
+    //     c[1] = Input.GetAxisRaw("Vertical");
+
+    //     d[0] = Input.GetKey(KeyCode.Space) ? 1 : 0;
+    // }
+
+    private bool CanSeePlayer()
     {
-        Debug.Log(" Heuristics initialized");
-        var c = actionsOut.ContinuousActions;
-        var d = actionsOut.DiscreteActions;
+        Vector2 myPos = transform.position;
+        Vector2 enemyPos = player.position;
 
-        c[0] = Input.GetAxisRaw("Horizontal");
-        c[1] = Input.GetAxisRaw("Vertical");
+        Vector2 delta = enemyPos - myPos;
+        Vector2 dir = delta.normalized;
 
-        d[0] = Input.GetKey(KeyCode.Space) ? 1 : 0;
+        Vector2 origin = myPos + dir * 0.6f; // offset outside own collider
+
+        RaycastHit2D hit = Physics2D.Raycast(origin, dir, delta.magnitude);
+
+        return hit.collider != null &&
+            hit.collider.CompareTag("Player");
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -124,7 +161,8 @@ public class MoveAgent : Agent
 
         if (collision.gameObject.CompareTag("Wall"))
         {
-            AddReward(-0.1f);
+            Debug.Log("collided with WALLLLLLLLLLLLLLLLLLLLLLL");
+            AddReward(-1f);
         }
     }   
 }
