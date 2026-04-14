@@ -23,7 +23,8 @@ public class MoveAgent : Agent
     {
         // Debug.Log("Episode initialized");
         // Reset position each episode
-        lastDistance = Vector3.Distance(transform.position, player.position);
+        //lastDistance = Vector3.Distance(transform.position, player.position);
+        
         transform.position = Vector3.zero;
         rb.linearVelocity = Vector2.zero;
 
@@ -38,6 +39,9 @@ public class MoveAgent : Agent
             Random.Range(-4f, 4f),
             Random.Range(0,0)
         );
+
+        lastDistance = Vector3.Distance(transform.position, player.position);
+        wasSeeingPlayer = false;
     }
 
     public override void CollectObservations(VectorSensor sensor)
@@ -56,8 +60,7 @@ public class MoveAgent : Agent
 
         sensor.AddObservation(weapon.CanShoot ? 1f : 0f); //observer shooting cooldown, The 1 and 0 are just signals to the neural network, not time values.
 
-        sensor.AddObservation(CanSeePlayer() ? 1f : 0f);
-    
+        sensor.AddObservation(CanSeePlayer() ? 1f : 0f);   
     }
 
     public override void OnActionReceived(ActionBuffers actions)
@@ -161,7 +164,7 @@ public class MoveAgent : Agent
 
         if (collision.gameObject.CompareTag("Wall"))
         {
-            Debug.Log("collided with WALLLLLLLLLLLLLLLLLLLLLLL");
+            Debug.Log("collided with WALLLLLLLLLLLLLLLLLLLLLLL" + collision.otherCollider.name);
             AddReward(-1f);
         }
     }   

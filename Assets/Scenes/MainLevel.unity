@@ -1248,7 +1248,7 @@ GameObject:
   - component: {fileID: 698127567}
   - component: {fileID: 698127568}
   - component: {fileID: 698127569}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Launcher
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1355,7 +1355,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 807228417}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ShellSpawnPoint EGO
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1387,7 +1387,7 @@ GameObject:
   m_Component:
   - component: {fileID: 855557652}
   - component: {fileID: 855557651}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: TankBody
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -1462,7 +1462,7 @@ Transform:
   m_GameObject: {fileID: 855557650}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.451, y: 0.499, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1521,7 +1521,7 @@ GameObject:
   - component: {fileID: 1195522081}
   - component: {fileID: 1195522080}
   - component: {fileID: 1195522085}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Tank EGO
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1537,7 +1537,7 @@ Transform:
   m_GameObject: {fileID: 1195522078}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 6.051, y: 2.211, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1603,7 +1603,7 @@ MonoBehaviour:
     hasUpgradedBrainParametersWithActionSpec: 1
   m_Model: {fileID: 5022602860645237092, guid: ecd4192a35e1fbb4f974ff1c09d16505, type: 3}
   m_InferenceDevice: 0
-  m_BehaviorType: 0
+  m_BehaviorType: 2
   m_BehaviorName: MoveAgent
   TeamId: 0
   m_UseChildSensors: 1
@@ -1705,7 +1705,7 @@ MonoBehaviour:
   m_RayLength: 10
   m_RayLayerMask:
     serializedVersion: 2
-    m_Bits: 4294967291
+    m_Bits: 4294967227
   m_ObservationStacks: 1
   m_AlternatingRayOrder: 1
   m_UseBatchedRaycasts: 0
@@ -1720,7 +1720,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1310195455}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: LauncherPivot EGO
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1736,7 +1736,7 @@ Transform:
   m_GameObject: {fileID: 1310195454}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -6.0958195, y: 0.5047498, z: 0}
+  m_LocalPosition: {x: -6.5568194, y: -0.02225025, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
