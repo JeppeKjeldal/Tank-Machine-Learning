@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
@@ -48,7 +48,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnShoot(InputAction.CallbackContext context)
     {
-        Debug.Log("bob is shooting");
+        Debug.Log("player is shooting");
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
