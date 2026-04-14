@@ -130,7 +130,7 @@ GameObject:
   - component: {fileID: 279583437}
   - component: {fileID: 279583436}
   - component: {fileID: 279583438}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Square (1)
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -387,7 +387,7 @@ GameObject:
   - component: {fileID: 420696462}
   - component: {fileID: 420696463}
   - component: {fileID: 420696464}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Square
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -662,7 +662,7 @@ GameObject:
   - component: {fileID: 562828393}
   - component: {fileID: 562828392}
   - component: {fileID: 562828394}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Square
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -883,7 +883,7 @@ GameObject:
   m_Component:
   - component: {fileID: 626060575}
   - component: {fileID: 626060576}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: TankBase
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -976,7 +976,7 @@ GameObject:
   - component: {fileID: 638696192}
   - component: {fileID: 638696193}
   - component: {fileID: 638696194}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Square (3)
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -1115,9 +1115,9 @@ GameObject:
   - component: {fileID: 723218770}
   - component: {fileID: 723218769}
   - component: {fileID: 723218771}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Player
-  m_TagString: Target
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1181,8 +1181,8 @@ MonoBehaviour:
   bulletSpeed: 10
   bulletPrefab: {fileID: 1252834519616831935, guid: 0b77b3a1fc50df0498e0f200cf55c968, type: 3}
   bulletSpawnPoint: {fileID: 813721947}
---- !u!61 &723218771
-BoxCollider2D:
+--- !u!58 &723218771
+CircleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -1215,18 +1215,8 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0.03273481}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0, y: 0}
-    oldSize: {x: 0, y: 0}
-    newSize: {x: 0, y: 0}
-    adaptiveTilingThreshold: 0
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Size: {x: 1, y: 1.0654695}
-  m_EdgeRadius: 0
+  m_Offset: {x: 0, y: 0}
+  m_Radius: 0.5
 --- !u!1 &813721946
 GameObject:
   m_ObjectHideFlags: 0
@@ -1236,7 +1226,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 813721947}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: BulletSpawnPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1351,7 +1341,8 @@ Transform:
   m_LocalPosition: {x: 6.24, y: 2.22, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1346483575}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &855557654
@@ -1367,12 +1358,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.ML-Agents::Unity.MLAgents.Policies.BehaviorParameters
   m_BrainParameters:
-    VectorObservationSize: 3
+    VectorObservationSize: 49
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 2
-      BranchSizes: 
-    VectorActionSize: 02000000
+      BranchSizes: 02000000
+    VectorActionSize: 
     VectorActionDescriptions: []
     VectorActionSpaceType: 1
     hasUpgradedBrainParametersWithActionSpec: 1
@@ -1449,6 +1440,21 @@ MonoBehaviour:
   MaxStep: 4000
   moveSpeed: 5
   goal: {fileID: 723218768}
+  bulletPrefab: {fileID: 1252834519616831935, guid: 5c50d682f1abbbc43b4f5207d82c9743, type: 3}
+  firePoint: {fileID: 1346483575}
+  shootCooldown: 0.5
+  shootReward: 0.2
+  hitPlayerReward: 1
+  missPenalty: -0.01
+  rayDistance: 6
+  rayCount: 8
+  rayMask:
+    serializedVersion: 2
+    m_Bits: 72
+  stepPenalty: -0.001
+  wallPenalty: -0.2
+  reachGoalReward: 1
+  closerRewardMultiplier: 0.05
 --- !u!114 &855557658
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1501,7 +1507,7 @@ GameObject:
   m_Component:
   - component: {fileID: 902736474}
   - component: {fileID: 902736475}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: TankTube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1591,7 +1597,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1066549199}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Walls
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1628,7 +1634,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1125835860}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Model
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1663,7 +1669,7 @@ GameObject:
   - component: {fileID: 1330206570}
   - component: {fileID: 1330206571}
   - component: {fileID: 1330206572}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Square (1)
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -1790,6 +1796,37 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!1 &1346483574
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1346483575}
+  m_Layer: 0
+  m_Name: FirePoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1346483575
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1346483574}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.13, y: 0.67, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 855557652}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1897194270
 GameObject:
   m_ObjectHideFlags: 0
@@ -1801,7 +1838,7 @@ GameObject:
   - component: {fileID: 1897194271}
   - component: {fileID: 1897194272}
   - component: {fileID: 1897194273}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Square (4)
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -1935,6 +1972,6 @@ SceneRoots:
   - {fileID: 519420032}
   - {fileID: 619394802}
   - {fileID: 296956466}
+  - {fileID: 723218768}
   - {fileID: 855557652}
   - {fileID: 1066549199}
-  - {fileID: 723218768}
