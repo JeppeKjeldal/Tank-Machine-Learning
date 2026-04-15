@@ -23,7 +23,6 @@ public class MoveAgent : Agent
     {
         // Debug.Log("Episode initialized");
         // Reset position each episode
-        //lastDistance = Vector3.Distance(transform.position, player.position);
         
         transform.position = Vector3.zero;
         rb.linearVelocity = Vector2.zero;
