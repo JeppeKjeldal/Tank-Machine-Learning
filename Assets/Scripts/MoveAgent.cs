@@ -78,7 +78,6 @@ public class MoveAgent : Agent
 
         float distance = Vector3.Distance(transform.position, player.position);
 
-        // float progress = lastDistance - distance;
         float progress = lastDistance - distance;
         lastDistance = distance;
 
