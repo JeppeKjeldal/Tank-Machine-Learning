@@ -1,0 +1,29 @@
+{
+    "MoveAgent": {
+        "checkpoints": [
+            {
+                "steps": 200115,
+                "file_path": "results\\CombatFresh4\\MoveAgent\\MoveAgent-200115.onnx",
+                "reward": -335.29485780000687,
+                "creation_time": 1776708807.0930614,
+                "auxillary_file_paths": [
+                    "results\\CombatFresh4\\MoveAgent\\MoveAgent-200115.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 200115,
+            "file_path": "results\\CombatFresh4\\MoveAgent.onnx",
+            "reward": -335.29485780000687,
+            "creation_time": 1776708807.0930614,
+            "auxillary_file_paths": [
+                "results\\CombatFresh4\\MoveAgent\\MoveAgent-200115.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "1.1.0",
+        "torch_version": "2.2.2+cpu"
+    }
+}

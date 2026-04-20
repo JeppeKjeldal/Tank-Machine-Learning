@@ -33,6 +33,7 @@ public class ShellProjectile : MonoBehaviour
         {
             ownerAgent.AddReward(5f);
             Debug.Log("Agent rewarded for hitting player");
+            ownerAgent.EndEpisode();
         }
 
         Destroy(gameObject);

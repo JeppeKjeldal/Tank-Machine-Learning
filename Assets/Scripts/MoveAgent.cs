@@ -12,6 +12,7 @@ public class MoveAgent : Agent
     private float lastDistance;
     private bool wasSeeingPlayer;
     private bool wasSeeingWall;
+    private bool fired;
     private RayPerceptionSensorComponent2D rayComp;
 
     public override void Initialize()
@@ -43,6 +44,8 @@ public class MoveAgent : Agent
         lastDistance = Vector3.Distance(transform.position, player.position);
         wasSeeingPlayer = false;
         wasSeeingWall = false;
+
+        fired = false;
     }
 
     public override void CollectObservations(VectorSensor sensor)
@@ -91,10 +94,10 @@ public class MoveAgent : Agent
 
         float toward = Vector2.Dot(velDir, toPlayer);
 
-        if(seesPlayer)
+        if(distance > 2f && seesPlayer)
         {
-            AddReward(0.1f);              // vision good
-            AddReward(toward * 0.2f);     // move toward visible target
+            AddReward(0.01f);              // vision good
+            AddReward(toward * 0.05f);     // move toward visible target
         }
 
         if(!seesPlayer)
@@ -124,12 +127,56 @@ public class MoveAgent : Agent
 
         wasSeeingWall = seesWallNow;
 
-        // Success condition
-        if (distance < 0.5f)
+        //----------------------------------------- Weapon logic below ---------------------- 
+
+        weapon.SetDirection((TankWeapon.Direction)rotate);
+        Vector2 turretDir = weapon.turretPivot.up;
+        float aimAlignment = Vector2.Dot(turretDir.normalized, toPlayer); // align aim to the player(correct turret facing direction)
+
+        if (seesPlayer && aimAlignment > 0.8f) // sees player aimed correctly, Agent should be rewarded for correct aiming even when not shooting.
         {
-            AddReward(20f);
-            EndEpisode();
+            AddReward(0.02f);
         }
+
+        fired = false;
+
+        if (shoot == 1)         // agent decision to shoot
+        {
+            fired = weapon.TryShoot();
+            
+            if (fired)
+            {
+                if (!seesPlayer)    // Decided to take the shot while not seeing player, punish
+                {
+                    AddReward(-0.05f);
+                }
+                else if (aimAlignment > 0.8f) // Took the shot while seeing the player and correct aim. good.
+                {
+                    AddReward(0.1f);
+                }
+                else                    // visible but poor aim
+                {
+                    AddReward(-0.02f);
+                }
+            }
+
+           
+        }
+
+        // Success condition
+        // if (distance < 0.5f)
+        // {
+        //     AddReward(20f);
+        //     EndEpisode();
+        // }
+        if (distance > 2f && distance < 5f && seesPlayer)
+        {
+            AddReward(0.02f);
+        }
+        if (distance < 1.5f)
+        {
+            AddReward(-0.01f);
+        }     
     }
 
     private bool SensorSeesPlayer()
@@ -173,7 +220,7 @@ public class MoveAgent : Agent
     {
         if (collision.gameObject.CompareTag("Player"))
         {
-            AddReward(100f);
+            AddReward(-1f);
             Debug.Log("collided with player");
             EndEpisode();
         }
@@ -192,7 +239,7 @@ public class MoveAgent : Agent
     }   
 }
 
-         // switch (rotate) //add if can see player then rotate, reward for correct rotate
+        // switch (rotate) //add if can see player then rotate, reward for correct rotate
         // {
         //     case 0: weapon.SetDirection(TankWeapon.Direction.Up); break;
         //     case 1: weapon.SetDirection(TankWeapon.Direction.Right); break;
@@ -215,6 +262,32 @@ public class MoveAgent : Agent
         //         AddReward(-0.001f); // optional: discourage spam
         //     }
         // }
+
+        // if (shoot == 1) // agent decision to shoot 
+        // {
+        //     weapon.TryShoot();
+        // }
+        
+        // if (shoot == 1 && !seesPlayer) // Decided to take the shot while not seeing player, punish
+        // {
+        //     AddReward(-0.05f);
+        // }
+
+        // if (seesPlayer && aimAlignment > 0.8f) // sees player aimed correctly, Agent should be rewarded for correct aiming even when not shooting.
+        // {
+        //     AddReward(0.02f);
+        // }
+
+        // if (shoot == 1 && seesPlayer && aimAlignment > 0.8f) // Took the shot while seeing the player and correct aim. good.
+        // {
+        //     AddReward(0.1f);
+        // }
+        // else if (shoot == 1 && seesPlayer) // visible but poor aim
+        // {
+        //     AddReward(-0.02f); 
+        // }
+
+
 
         // private bool HasLineOfSight()
         // {

@@ -8,7 +8,7 @@ public class TankWeapon : MonoBehaviour
     public Transform firePoint;
     private Agent ownerAgent;
 
-    public float fireCooldown = 3f;
+    public float fireCooldown = 1f;
     private float nextFireTime = 0f;
     public bool CanShoot => Time.time >= nextFireTime;
 
