@@ -13,8 +13,7 @@ public class MoveAgent : Agent
     public GameObject bulletPrefab;
     public Transform firePoint;
     public float shootCooldown = 0.5f;
-    public float shootReward = 0.2f;
-    public float hitPlayerReward = 1.0f;
+    public float hitPlayerReward = 1000.0f;
     public float missPenalty = -0.01f;
 
     [Header("Ray Settings")]
@@ -25,12 +24,14 @@ public class MoveAgent : Agent
     [Header("Rewards")]
     public float stepPenalty = -0.001f;
     public float wallPenalty = -0.2f;
-    public float reachGoalReward = 1.0f;
-    public float closerRewardMultiplier = 0.05f;
+    public float seePlayerReward = 10.0f;
 
     private Rigidbody2D rb;
-    private float previousDistanceToGoal;
     private float lastShootTime;
+
+    private bool canSeePlayer;
+    private Vector2 lastSeenPlayerDirection;
+    private bool sawPlayerLastStep;
 
     public override void Initialize()
     {
@@ -47,36 +48,46 @@ public class MoveAgent : Agent
             Random.Range(-4f, 4f)
         );
 
-        goal.localPosition = new Vector3(
-            Random.Range(-4f, 4f),
-            Random.Range(-4f, 4f),
-            0f
-        );
+        if (goal != null)
+        {
+            goal.localPosition = new Vector3(
+                Random.Range(-4f, 4f),
+                Random.Range(-4f, 4f),
+                0f
+            );
+        }
 
-        previousDistanceToGoal = Vector2.Distance(rb.position, goal.localPosition);
         lastShootTime = -shootCooldown;
+        canSeePlayer = false;
+        lastSeenPlayerDirection = Vector2.zero;
+        sawPlayerLastStep = false;
     }
 
     public override void CollectObservations(VectorSensor sensor)
     {
         Vector2 agentPos = rb.position;
-        Vector2 goalPos = goal.localPosition;
-        Vector2 toGoal = goalPos - agentPos;
         Vector2 velocity = rb.linearVelocity;
 
         sensor.AddObservation(agentPos / 4f);
-        sensor.AddObservation(goalPos / 4f);
-        sensor.AddObservation(toGoal.normalized);
-        sensor.AddObservation(toGoal.magnitude / 8f);
         sensor.AddObservation(velocity / moveSpeed);
 
         CastRays(sensor);
+
+        sensor.AddObservation(canSeePlayer ? 1f : 0f);
+
+        if (canSeePlayer)
+            sensor.AddObservation(lastSeenPlayerDirection);
+        else
+            sensor.AddObservation(Vector2.zero);
     }
 
     private void CastRays(VectorSensor sensor)
     {
         if (rayCount <= 0)
             return;
+
+        canSeePlayer = false;
+        lastSeenPlayerDirection = Vector2.zero;
 
         float angleStep = 360f / rayCount;
 
@@ -96,37 +107,40 @@ public class MoveAgent : Agent
                 bool hitPlayer = hitObject.CompareTag("Player");
                 bool hitWall = hitObject.CompareTag("Wall") || hitObject.layer == LayerMask.NameToLayer("Wall");
 
-                if (hitWall)
+                if (hitPlayer)
                 {
-                    sensor.AddObservation(1f);
-                    sensor.AddObservation(0f);
-                    sensor.AddObservation(0f);
-                    sensor.AddObservation(0f);
+                    canSeePlayer = true;
+                    lastSeenPlayerDirection = direction;
+
+                    sensor.AddObservation(0f); // wall
+                    sensor.AddObservation(1f); // player
+                    sensor.AddObservation(0f); // other
+                    sensor.AddObservation(0f); // nothing
                 }
-                else if (hitPlayer)
+                else if (hitWall)
                 {
-                    sensor.AddObservation(0f);
-                    sensor.AddObservation(1f);
-                    sensor.AddObservation(0f);
-                    sensor.AddObservation(0f);
+                    sensor.AddObservation(1f); // wall
+                    sensor.AddObservation(0f); // player
+                    sensor.AddObservation(0f); // other
+                    sensor.AddObservation(0f); // nothing
                 }
                 else
                 {
-                    sensor.AddObservation(0f);
-                    sensor.AddObservation(0f);
-                    sensor.AddObservation(1f);
-                    sensor.AddObservation(0f);
+                    sensor.AddObservation(0f); // wall
+                    sensor.AddObservation(0f); // player
+                    sensor.AddObservation(1f); // other
+                    sensor.AddObservation(0f); // nothing
                 }
 
                 sensor.AddObservation(normalizedDistance);
             }
             else
             {
-                sensor.AddObservation(0f);
-                sensor.AddObservation(0f);
-                sensor.AddObservation(0f);
-                sensor.AddObservation(1f);
-                sensor.AddObservation(0f);
+                sensor.AddObservation(0f); // wall
+                sensor.AddObservation(0f); // player
+                sensor.AddObservation(0f); // other
+                sensor.AddObservation(1f); // nothing
+                sensor.AddObservation(0f); // distance
             }
         }
     }
@@ -141,20 +155,12 @@ public class MoveAgent : Agent
 
         AddReward(stepPenalty);
 
-        float currentDistanceToGoal = Vector2.Distance(rb.position, goal.localPosition);
-        float distanceDelta = previousDistanceToGoal - currentDistanceToGoal;
-        AddReward(distanceDelta * closerRewardMultiplier);
+        if (canSeePlayer && !sawPlayerLastStep)
+        {
+            AddReward(seePlayerReward);
+        }
 
-        if (currentDistanceToGoal < 3f)
-            AddReward(0.002f);
-
-        if (currentDistanceToGoal < 1.5f)
-            AddReward(0.005f);
-
-        if (currentDistanceToGoal < 0.75f)
-            AddReward(0.01f);
-
-        previousDistanceToGoal = currentDistanceToGoal;
+        sawPlayerLastStep = canSeePlayer;
 
         int shootAction = actions.DiscreteActions[0];
         if (shootAction == 1)
@@ -168,12 +174,15 @@ public class MoveAgent : Agent
         if (Time.time < lastShootTime + shootCooldown)
             return;
 
-        if (bulletPrefab == null || firePoint == null || goal == null)
+        if (bulletPrefab == null || firePoint == null)
+            return;
+
+        if (!canSeePlayer)
             return;
 
         lastShootTime = Time.time;
 
-        Vector2 shootDirection = ((Vector2)goal.position - (Vector2)firePoint.position).normalized;
+        Vector2 shootDirection = lastSeenPlayerDirection.normalized;
 
         GameObject bulletObject = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
         AgentBullet bullet = bulletObject.GetComponent<AgentBullet>();
@@ -189,12 +198,7 @@ public class MoveAgent : Agent
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Player"))
-        {
-            AddReward(reachGoalReward);
-            EndEpisode();
-        }
-        else if (collision.gameObject.CompareTag("Wall"))
+        if (collision.gameObject.CompareTag("Wall"))
         {
             AddReward(wallPenalty);
         }
@@ -247,12 +251,6 @@ public class MoveAgent : Agent
                 Gizmos.color = Color.white;
                 Gizmos.DrawLine(origin, origin + direction * rayDistance);
             }
-        }
-
-        if (firePoint != null && goal != null)
-        {
-            Gizmos.color = Color.magenta;
-            Gizmos.DrawLine(firePoint.position, goal.position);
         }
 
         if (firePoint != null)

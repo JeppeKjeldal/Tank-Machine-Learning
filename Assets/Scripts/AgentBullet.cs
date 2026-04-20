@@ -26,13 +26,12 @@ public class AgentBullet : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        if (owner != null && other.gameObject == owner.gameObject)
+            return;
+
         if (other.CompareTag("Player"))
         {
-            if (owner != null)
-            {
-                owner.RewardShotHitPlayer();
-            }
-
+            owner?.RewardShotHitPlayer();
             Destroy(gameObject);
         }
         else if (other.CompareTag("Wall"))
