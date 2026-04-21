@@ -6,25 +6,29 @@ using UnityEngine;
 public class MoveAgent : Agent
 {
     [Header("Movement")]
-    public float moveSpeed = 5f;
+    public float moveSpeed = 4f;
+    public float rotateSpeed = 180f;
     public Transform goal;
 
     [Header("Shooting")]
     public GameObject bulletPrefab;
-    public Transform firePoint;
+    public Transform firePoint;   // turret / barrel tip direction source
     public float shootCooldown = 0.5f;
-    public float hitPlayerReward = 1000.0f;
+    public float hitPlayerReward = 2.0f;
     public float missPenalty = -0.01f;
 
-    [Header("Ray Settings")]
+    [Header("Vision")]
     public float rayDistance = 10f;
-    public int rayCount = 32;
+    public int rayCount = 9;
+    public float visionAngle = 90f;
     public LayerMask rayMask;
 
     [Header("Rewards")]
     public float stepPenalty = -0.001f;
-    public float wallPenalty = -0.2f;
-    public float seePlayerReward = 10.0f;
+    public float wallPenalty = -0.05f;
+    public float seePlayerReward = 0.05f;
+    public float facePlayerReward = 0.01f;
+    public float loseSightPenalty = -0.01f;
 
     private Rigidbody2D rb;
     private float lastShootTime;
@@ -43,14 +47,16 @@ public class MoveAgent : Agent
         rb.linearVelocity = Vector2.zero;
         rb.angularVelocity = 0f;
 
-        rb.position = new Vector2(
+        transform.position = new Vector2(
             Random.Range(-4f, 4f),
             Random.Range(-4f, 4f)
         );
 
+        transform.rotation = Quaternion.Euler(0f, 0f, Random.Range(0f, 360f));
+
         if (goal != null)
         {
-            goal.localPosition = new Vector3(
+            goal.position = new Vector3(
                 Random.Range(-4f, 4f),
                 Random.Range(-4f, 4f),
                 0f
@@ -65,20 +71,26 @@ public class MoveAgent : Agent
 
     public override void CollectObservations(VectorSensor sensor)
     {
-        Vector2 agentPos = rb.position;
         Vector2 velocity = rb.linearVelocity;
+        Vector2 forward = firePoint != null ? (Vector2)firePoint.up : (Vector2)transform.up;
 
-        sensor.AddObservation(agentPos / 4f);
-        sensor.AddObservation(velocity / moveSpeed);
+        sensor.AddObservation(transform.position.x / 5f);
+        sensor.AddObservation(transform.position.y / 5f);
+        sensor.AddObservation(velocity.x / moveSpeed);
+        sensor.AddObservation(velocity.y / moveSpeed);
+        sensor.AddObservation(forward);
 
         CastRays(sensor);
 
         sensor.AddObservation(canSeePlayer ? 1f : 0f);
+        sensor.AddObservation(lastSeenPlayerDirection);
 
+        float facingDot = 0f;
         if (canSeePlayer)
-            sensor.AddObservation(lastSeenPlayerDirection);
-        else
-            sensor.AddObservation(Vector2.zero);
+        {
+            facingDot = Vector2.Dot(forward.normalized, lastSeenPlayerDirection.normalized);
+        }
+        sensor.AddObservation(facingDot);
     }
 
     private void CastRays(VectorSensor sensor)
@@ -89,14 +101,20 @@ public class MoveAgent : Agent
         canSeePlayer = false;
         lastSeenPlayerDirection = Vector2.zero;
 
-        float angleStep = 360f / rayCount;
+        Vector2 forward = firePoint != null ? (Vector2)firePoint.up : (Vector2)transform.up;
+        float baseAngle = Mathf.Atan2(forward.y, forward.x) * Mathf.Rad2Deg;
+
+        float startAngle = baseAngle - (visionAngle * 0.5f);
+        float angleStep = rayCount > 1 ? visionAngle / (rayCount - 1) : 0f;
+
+        float closestPlayerDistance = float.MaxValue;
 
         for (int i = 0; i < rayCount; i++)
         {
-            float angle = i * angleStep;
+            float angle = startAngle + (i * angleStep);
             Vector2 direction = DegreeToVector2(angle);
-            Vector2 origin = rb.position + direction * 0.1f;
 
+            Vector2 origin = rb.position;
             RaycastHit2D hit = Physics2D.Raycast(origin, direction, rayDistance, rayMask);
 
             if (hit.collider != null)
@@ -105,12 +123,17 @@ public class MoveAgent : Agent
                 GameObject hitObject = hit.collider.gameObject;
 
                 bool hitPlayer = hitObject.CompareTag("Player");
-                bool hitWall = hitObject.CompareTag("Wall") || hitObject.layer == LayerMask.NameToLayer("Wall");
+                bool hitWall = hitObject.CompareTag("Wall") ||
+                               hitObject.layer == LayerMask.NameToLayer("Wall");
 
                 if (hitPlayer)
                 {
-                    canSeePlayer = true;
-                    lastSeenPlayerDirection = direction;
+                    if (hit.distance < closestPlayerDistance)
+                    {
+                        closestPlayerDistance = hit.distance;
+                        canSeePlayer = true;
+                        lastSeenPlayerDirection = direction.normalized;
+                    }
 
                     sensor.AddObservation(0f); // wall
                     sensor.AddObservation(1f); // player
@@ -147,17 +170,38 @@ public class MoveAgent : Agent
 
     public override void OnActionReceived(ActionBuffers actions)
     {
-        float moveX = Mathf.Clamp(actions.ContinuousActions[0], -1f, 1f);
-        float moveY = Mathf.Clamp(actions.ContinuousActions[1], -1f, 1f);
+        float moveAction = Mathf.Clamp(actions.ContinuousActions[0], -1f, 1f);
+        float rotateAction = Mathf.Clamp(actions.ContinuousActions[1], -1f, 1f);
 
-        Vector2 moveDirection = new Vector2(moveX, moveY).normalized;
-        rb.linearVelocity = moveDirection * moveSpeed;
+        Vector2 forward = firePoint != null ? (Vector2)firePoint.up : (Vector2)transform.up;
+
+        rb.linearVelocity = forward * moveAction * moveSpeed;
+        rb.angularVelocity = -rotateAction * rotateSpeed;
 
         AddReward(stepPenalty);
 
         if (canSeePlayer && !sawPlayerLastStep)
         {
             AddReward(seePlayerReward);
+        }
+
+        if (!canSeePlayer && sawPlayerLastStep)
+        {
+            AddReward(loseSightPenalty);
+        }
+
+        if (canSeePlayer)
+        {
+            float facingDot = Vector2.Dot(forward.normalized, lastSeenPlayerDirection.normalized);
+
+            if (facingDot > 0.95f)
+            {
+                AddReward(facePlayerReward);
+            }
+            else if (facingDot < 0.5f)
+            {
+                AddReward(-0.002f);
+            }
         }
 
         sawPlayerLastStep = canSeePlayer;
@@ -180,16 +224,21 @@ public class MoveAgent : Agent
         if (!canSeePlayer)
             return;
 
+        Vector2 forward = firePoint.up.normalized;
+        float facingDot = Vector2.Dot(forward, lastSeenPlayerDirection.normalized);
+
+        // Must be facing the player closely before shooting
+        if (facingDot < 0.95f)
+            return;
+
         lastShootTime = Time.time;
 
-        Vector2 shootDirection = lastSeenPlayerDirection.normalized;
-
-        GameObject bulletObject = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
+        GameObject bulletObject = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
         AgentBullet bullet = bulletObject.GetComponent<AgentBullet>();
 
         if (bullet != null)
         {
-            bullet.SetDirection(shootDirection);
+            bullet.SetDirection(forward);
             bullet.SetOwner(this);
         }
 
@@ -207,6 +256,7 @@ public class MoveAgent : Agent
     public void RewardShotHitPlayer()
     {
         AddReward(hitPlayerReward);
+        EndEpisode();
     }
 
     private Vector2 DegreeToVector2(float degree)
@@ -221,13 +271,17 @@ public class MoveAgent : Agent
         if (body == null || rayCount <= 0)
             return;
 
-        float angleStep = 360f / rayCount;
+        Vector2 forward = firePoint != null ? (Vector2)firePoint.up : (Vector2)transform.up;
+        float baseAngle = Mathf.Atan2(forward.y, forward.x) * Mathf.Rad2Deg;
+
+        float startAngle = baseAngle - (visionAngle * 0.5f);
+        float angleStep = rayCount > 1 ? visionAngle / (rayCount - 1) : 0f;
 
         for (int i = 0; i < rayCount; i++)
         {
-            float angle = i * angleStep;
+            float angle = startAngle + (i * angleStep);
             Vector2 direction = DegreeToVector2(angle);
-            Vector2 origin = body.position + direction * 0.1f;
+            Vector2 origin = body.position;
 
             RaycastHit2D hit = Physics2D.Raycast(origin, direction, rayDistance, rayMask);
 
@@ -235,7 +289,8 @@ public class MoveAgent : Agent
             {
                 GameObject hitObject = hit.collider.gameObject;
                 bool hitPlayer = hitObject.CompareTag("Player");
-                bool hitWall = hitObject.CompareTag("Wall") || hitObject.layer == LayerMask.NameToLayer("Wall");
+                bool hitWall = hitObject.CompareTag("Wall") ||
+                               hitObject.layer == LayerMask.NameToLayer("Wall");
 
                 if (hitPlayer)
                     Gizmos.color = Color.green;
@@ -256,7 +311,17 @@ public class MoveAgent : Agent
         if (firePoint != null)
         {
             Gizmos.color = Color.magenta;
-            Gizmos.DrawLine(firePoint.position, firePoint.position + firePoint.right * 2f);
+            Gizmos.DrawLine(firePoint.position, firePoint.position + firePoint.up * 2f);
         }
+    }
+
+    public override void Heuristic(in ActionBuffers actionsOut)
+    {
+        var continuousActions = actionsOut.ContinuousActions;
+        var discreteActions = actionsOut.DiscreteActions;
+
+        continuousActions[0] = Input.GetAxis("Vertical");
+        continuousActions[1] = Input.GetAxis("Horizontal");
+        discreteActions[0] = Input.GetKey(KeyCode.Space) ? 1 : 0;
     }
 }
