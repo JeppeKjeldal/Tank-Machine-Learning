@@ -1,0 +1,29 @@
+{
+    "MoveAgent": {
+        "checkpoints": [
+            {
+                "steps": 200099,
+                "file_path": "results\\ImprovedCombat6\\MoveAgent\\MoveAgent-200099.onnx",
+                "reward": -190.1709339618683,
+                "creation_time": 1776809688.9508884,
+                "auxillary_file_paths": [
+                    "results\\ImprovedCombat6\\MoveAgent\\MoveAgent-200099.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 200099,
+            "file_path": "results\\ImprovedCombat6\\MoveAgent.onnx",
+            "reward": -190.1709339618683,
+            "creation_time": 1776809688.9508884,
+            "auxillary_file_paths": [
+                "results\\ImprovedCombat6\\MoveAgent\\MoveAgent-200099.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "1.1.0",
+        "torch_version": "2.2.2+cpu"
+    }
+}

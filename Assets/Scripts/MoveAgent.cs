@@ -9,6 +9,8 @@ public class MoveAgent : Agent
     private Rigidbody2D rb;
     public Transform player;
     public TankWeapon weapon;
+    // private int lastRotate;
+    private float lastAimAlignment;
     private float lastDistance;
     private bool wasSeeingPlayer;
     private bool wasSeeingWall;
@@ -46,6 +48,8 @@ public class MoveAgent : Agent
         wasSeeingWall = false;
 
         fired = false;
+        lastAimAlignment = 0f;
+        // lastRotate = 0;
     }
 
     public override void CollectObservations(VectorSensor sensor)
@@ -74,8 +78,8 @@ public class MoveAgent : Agent
         float moveX = actions.ContinuousActions[0];
         float moveY = actions.ContinuousActions[1];
         
-        int rotate = actions.DiscreteActions[1];
-        int shoot = actions.DiscreteActions[0];
+        int shoot = actions.DiscreteActions[0]; // to shoot or not
+        int rotate = actions.DiscreteActions[1]; // to shoot up, right, down, left. or no chance
 
         rb.linearVelocity = new Vector2(moveX, moveY) * moveSpeed;
 
@@ -93,6 +97,8 @@ public class MoveAgent : Agent
             : Vector2.zero;
 
         float toward = Vector2.Dot(velDir, toPlayer);
+        
+        Vector2 delta = player.position - transform.position; // for vertital and horizontal alignment
 
         if(distance > 2f && seesPlayer)
         {
@@ -102,7 +108,7 @@ public class MoveAgent : Agent
 
         if(!seesPlayer)
         {
-            AddReward(-0.3f); // losing sight bad
+            AddReward(-0.1f); // losing sight bad
 
             if(rb.linearVelocity.magnitude < 0.2f)
             {
@@ -127,56 +133,102 @@ public class MoveAgent : Agent
 
         wasSeeingWall = seesWallNow;
 
+        // ------------------------------------ Spacing logic here ----------
+        if (seesPlayer)
+        {
+            if (distance > 6f)
+            {
+                AddReward(toward * 0.03f);   // move closer
+            }
+            else if (distance >= 4f && distance <= 6f)
+            {
+                AddReward(0.03f);            // ideal zone
+            }
+            else if (distance < 4f)
+            {
+                AddReward(-toward * 0.03f);  // moving away is good
+            }
+        }
+
+        if (distance < 7f && (Mathf.Abs(delta.x) < 0.6f || Mathf.Abs(delta.y) < 0.6f)) //helps align horizontal or vertical
+        {
+            AddReward(0.02f);
+        }
+        
+        AddReward(-0.001f); // Idle/bad farmo spot punish
+
         //----------------------------------------- Weapon logic below ---------------------- 
 
-        weapon.SetDirection((TankWeapon.Direction)rotate);
+        if (rotate != 0)
+        {
+            weapon.SetDirection((TankWeapon.Direction)(rotate - 1));
+        }
+
         Vector2 turretDir = weapon.turretPivot.up;
         float aimAlignment = Vector2.Dot(turretDir.normalized, toPlayer); // align aim to the player(correct turret facing direction)
 
-        if (seesPlayer && aimAlignment > 0.8f) // sees player aimed correctly, Agent should be rewarded for correct aiming even when not shooting.
+        if (rotate == 0 && seesPlayer && aimAlignment > 0.9f) // held correct aim
         {
-            AddReward(0.02f);
+            AddReward(0.004f); 
+        }
+        else if (rotate != 0 && aimAlignment > 0.9f) // rotated away from perfect aim
+        {
+            AddReward(-0.003f); 
+        }
+
+        if (seesPlayer && aimAlignment > lastAimAlignment)
+        {
+            AddReward(0.003f);
+        }
+
+        lastAimAlignment = aimAlignment;
+        // lastRotate = rotate;
+
+        if (seesPlayer)
+        {
+            AddReward(Mathf.Max(0f, aimAlignment) * 0.01f); //scaling reward based on aim when it sees player, when not shooting.
+            
+            if (aimAlignment < 0f)
+            {
+                AddReward(-0.003f);               
+            }
         }
 
         fired = false;
 
-        if (shoot == 1)         // agent decision to shoot
+        if (shoot == 1 && !weapon.CanShoot)
+        {
+            AddReward(-0.002f);
+        }
+        
+        if (shoot == 1)
         {
             fired = weapon.TryShoot();
-            
+
             if (fired)
             {
-                if (!seesPlayer)    // Decided to take the shot while not seeing player, punish
+                if (!seesPlayer) //punish missing shots
                 {
-                    AddReward(-0.05f);
+                    AddReward(-0.03f);
                 }
-                else if (aimAlignment > 0.8f) // Took the shot while seeing the player and correct aim. good.
+                else
                 {
-                    AddReward(0.1f);
-                }
-                else                    // visible but poor aim
-                {
-                    AddReward(-0.02f);
-                }
+                    // AddReward(Mathf.Max(0f, aimAlignment) * 0.15f); 
+                    // scaling reward based on aim when it sees player and takes a shot
+                    if (aimAlignment > 0.95f)
+                        AddReward(0.20f);
+                    else if (aimAlignment > 0.8f)
+                        AddReward(0.08f);
+                    else
+                        AddReward(-0.03f);
+                }  
             }
 
-           
+            if (seesPlayer && aimAlignment < 0f) //penalty for missing
+            {
+                AddReward(-0.005f);
+            }
         }
-
-        // Success condition
-        // if (distance < 0.5f)
-        // {
-        //     AddReward(20f);
-        //     EndEpisode();
-        // }
-        if (distance > 2f && distance < 5f && seesPlayer)
-        {
-            AddReward(0.02f);
-        }
-        if (distance < 1.5f)
-        {
-            AddReward(-0.01f);
-        }     
     }
 
     private bool SensorSeesPlayer()
