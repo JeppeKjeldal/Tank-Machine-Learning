@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 5f;
+    [SerializeField] private float rotateSpeed = 180f;
     [SerializeField] private float bulletSpeed = 10.0f;
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private Transform bulletSpawnPoint;
@@ -12,6 +13,7 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D rigidBody;
 
     private float moveInput;
+    private float rotateInput;
 
     private void Awake()
     {
@@ -22,27 +24,25 @@ public class PlayerController : MonoBehaviour
     private void OnEnable()
     {
         playerControls.Enable();
-
-        playerControls.Movement.Rotate.performed += OnRotate;
         playerControls.Movement.Shoot.performed += OnShoot;
     }
 
     private void OnDisable()
     {
-        playerControls.Movement.Rotate.performed -= OnRotate;
         playerControls.Movement.Shoot.performed -= OnShoot;
-
         playerControls.Disable();
     }
 
     private void Update()
     {
         moveInput = playerControls.Movement.ForwardBackward.ReadValue<float>();
+        rotateInput = playerControls.Movement.Rotate.ReadValue<float>();
     }
 
     private void FixedUpdate()
     {
         Move();
+        Rotate();
     }
 
     private void Move()
@@ -51,25 +51,10 @@ public class PlayerController : MonoBehaviour
         rigidBody.MovePosition(rigidBody.position + moveAmount);
     }
 
-    // 🔄 Rotate exactly 90 degrees per key press
-    private void OnRotate(InputAction.CallbackContext context)
+    private void Rotate()
     {
-        float input = context.ReadValue<float>();
-
-        if (input > 0)
-        {
-            Rotate90(-90f);
-        }
-        else if (input < 0)
-        {
-            Rotate90(90f);
-        }
-    }
-
-    private void Rotate90(float angle)
-    {
-        float newRotation = rigidBody.rotation + angle;
-        rigidBody.MoveRotation(newRotation);
+        float rotationAmount = -rotateInput * rotateSpeed * Time.fixedDeltaTime;
+        rigidBody.MoveRotation(rigidBody.rotation + rotationAmount);
     }
 
     private void OnShoot(InputAction.CallbackContext context)

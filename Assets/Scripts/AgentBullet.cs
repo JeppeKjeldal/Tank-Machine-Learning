@@ -31,6 +31,7 @@ public class AgentBullet : MonoBehaviour
 
         if (other.CompareTag("Player"))
         {
+            PointsManager.Instance.AddEnemyPoints();
             owner?.RewardShotHitPlayer();
             Destroy(gameObject);
         }

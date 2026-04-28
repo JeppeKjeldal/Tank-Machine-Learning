@@ -1,0 +1,56 @@
+{
+    "MoveAgent": {
+        "checkpoints": [
+            {
+                "steps": 499986,
+                "file_path": "results\\myRun13\\MoveAgent\\MoveAgent-499986.onnx",
+                "reward": -29.505002211779356,
+                "creation_time": 1777266916.0534034,
+                "auxillary_file_paths": [
+                    "results\\myRun13\\MoveAgent\\MoveAgent-499986.pt"
+                ]
+            },
+            {
+                "steps": 999944,
+                "file_path": "results\\myRun13\\MoveAgent\\MoveAgent-999944.onnx",
+                "reward": null,
+                "creation_time": 1777269176.482204,
+                "auxillary_file_paths": [
+                    "results\\myRun13\\MoveAgent\\MoveAgent-999944.pt"
+                ]
+            },
+            {
+                "steps": 1499983,
+                "file_path": "results\\myRun13\\MoveAgent\\MoveAgent-1499983.onnx",
+                "reward": -4.999999966472387,
+                "creation_time": 1777271445.5969145,
+                "auxillary_file_paths": [
+                    "results\\myRun13\\MoveAgent\\MoveAgent-1499983.pt"
+                ]
+            },
+            {
+                "steps": 1580281,
+                "file_path": "results\\myRun13\\MoveAgent\\MoveAgent-1580281.onnx",
+                "reward": 775.2210368812084,
+                "creation_time": 1777272063.793357,
+                "auxillary_file_paths": [
+                    "results\\myRun13\\MoveAgent\\MoveAgent-1580281.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 1580281,
+            "file_path": "results\\myRun13\\MoveAgent.onnx",
+            "reward": 775.2210368812084,
+            "creation_time": 1777272063.793357,
+            "auxillary_file_paths": [
+                "results\\myRun13\\MoveAgent\\MoveAgent-1580281.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "1.1.0",
+        "torch_version": "2.1.2+cpu"
+    }
+}

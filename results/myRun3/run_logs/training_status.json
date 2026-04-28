@@ -2,22 +2,22 @@
     "MoveAgent": {
         "checkpoints": [
             {
-                "steps": 200024,
-                "file_path": "results\\myRun3\\MoveAgent\\MoveAgent-200024.onnx",
-                "reward": -76.39999477565289,
-                "creation_time": 1776757404.021535,
+                "steps": 200109,
+                "file_path": "results\\myRun3\\MoveAgent\\MoveAgent-200109.onnx",
+                "reward": 811.5049816928804,
+                "creation_time": 1776762209.4888978,
                 "auxillary_file_paths": [
-                    "results\\myRun3\\MoveAgent\\MoveAgent-200024.pt"
+                    "results\\myRun3\\MoveAgent\\MoveAgent-200109.pt"
                 ]
             }
         ],
         "final_checkpoint": {
-            "steps": 200024,
+            "steps": 200109,
             "file_path": "results\\myRun3\\MoveAgent.onnx",
-            "reward": -76.39999477565289,
-            "creation_time": 1776757404.021535,
+            "reward": 811.5049816928804,
+            "creation_time": 1776762209.4888978,
             "auxillary_file_paths": [
-                "results\\myRun3\\MoveAgent\\MoveAgent-200024.pt"
+                "results\\myRun3\\MoveAgent\\MoveAgent-200109.pt"
             ]
         }
     },

@@ -315,6 +315,23 @@ public class MoveAgent : Agent
         }
     }
 
+    public void MoveToRandomPosition()
+    {
+        rb.linearVelocity = Vector2.zero;
+        rb.angularVelocity = 0f;
+
+        transform.position = new Vector2(
+            Random.Range(-4f, 4f),
+            Random.Range(-4f, 4f)
+        );
+
+        transform.rotation = Quaternion.Euler(
+            0f,
+            0f,
+            Random.Range(0f, 360f)
+        );
+    }
+
     public override void Heuristic(in ActionBuffers actionsOut)
     {
         var continuousActions = actionsOut.ContinuousActions;
