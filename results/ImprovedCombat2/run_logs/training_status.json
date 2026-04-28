@@ -2,22 +2,22 @@
     "MoveAgent": {
         "checkpoints": [
             {
-                "steps": 200112,
-                "file_path": "results\\ImprovedCombat2\\MoveAgent\\MoveAgent-200112.onnx",
-                "reward": -495.29982590675354,
-                "creation_time": 1776804351.9604301,
+                "steps": 200119,
+                "file_path": "results\\ImprovedCombat2\\MoveAgent\\MoveAgent-200119.onnx",
+                "reward": 842.7965812683105,
+                "creation_time": 1776845060.7035568,
                 "auxillary_file_paths": [
-                    "results\\ImprovedCombat2\\MoveAgent\\MoveAgent-200112.pt"
+                    "results\\ImprovedCombat2\\MoveAgent\\MoveAgent-200119.pt"
                 ]
             }
         ],
         "final_checkpoint": {
-            "steps": 200112,
+            "steps": 200119,
             "file_path": "results\\ImprovedCombat2\\MoveAgent.onnx",
-            "reward": -495.29982590675354,
-            "creation_time": 1776804351.9604301,
+            "reward": 842.7965812683105,
+            "creation_time": 1776845060.7035568,
             "auxillary_file_paths": [
-                "results\\ImprovedCombat2\\MoveAgent\\MoveAgent-200112.pt"
+                "results\\ImprovedCombat2\\MoveAgent\\MoveAgent-200119.pt"
             ]
         }
     },

@@ -9,8 +9,10 @@ public class MoveAgent : Agent
     private Rigidbody2D rb;
     public Transform player;
     public TankWeapon weapon;
-    // private int lastRotate;
+    private int lastRotate;
+    private float aimAlignment;
     private float lastAimAlignment;
+    private bool wasAligned;
     private float lastDistance;
     private bool wasSeeingPlayer;
     private bool wasSeeingWall;
@@ -33,13 +35,13 @@ public class MoveAgent : Agent
         
         transform.position = new Vector3(
             Random.Range(-8f, 8f),
-            Random.Range(-4f, 4f),
+            Random.Range(-4f, 12f),
             Random.Range(0, 0)
         );
 
         player.transform.position = new Vector3(
             Random.Range(-8f, 8f),
-            Random.Range(-4f, 4f),
+            Random.Range(-4f, 12f),
             Random.Range(0,0)
         );
 
@@ -49,7 +51,8 @@ public class MoveAgent : Agent
 
         fired = false;
         lastAimAlignment = 0f;
-        // lastRotate = 0;
+        lastRotate = 0;
+        wasAligned = false;
     }
 
     public override void CollectObservations(VectorSensor sensor)
@@ -65,6 +68,7 @@ public class MoveAgent : Agent
         sensor.AddObservation(delta.magnitude / 10f);   // distance
 
         sensor.AddObservation((Vector2)weapon.turretPivot.up);
+        sensor.AddObservation(aimAlignment); // turret facing direction
 
         sensor.AddObservation(weapon.CanShoot ? 1f : 0f); //observer shooting cooldown, The 1 and 0 are just signals to the neural network, not time values.
 
@@ -150,10 +154,24 @@ public class MoveAgent : Agent
             }
         }
 
-        if (distance < 7f && (Mathf.Abs(delta.x) < 0.6f || Mathf.Abs(delta.y) < 0.6f)) //helps align horizontal or vertical
+        bool alignedNow = distance < 7f && (Mathf.Abs(delta.x) < 0.3f || Mathf.Abs(delta.y) < 0.3f);
+
+        if (alignedNow && !wasAligned)
         {
-            AddReward(0.02f);
+            AddReward(0.08f);   // entering lane
         }
+
+        if (alignedNow)
+        {
+            AddReward(0.01f);   // maintaining lane
+        }
+
+        wasAligned = alignedNow;
+
+        // if (distance < 7f && (Mathf.Abs(delta.x) < 0.3f || Mathf.Abs(delta.y) < 0.3f)) //helps align horizontal or vertical
+        // {
+        //     AddReward(0.04f);
+        // }
         
         AddReward(-0.001f); // Idle/bad farmo spot punish
 
@@ -165,15 +183,15 @@ public class MoveAgent : Agent
         }
 
         Vector2 turretDir = weapon.turretPivot.up;
-        float aimAlignment = Vector2.Dot(turretDir.normalized, toPlayer); // align aim to the player(correct turret facing direction)
+        aimAlignment = Vector2.Dot(turretDir.normalized, toPlayer); // align aim to the player(correct turret facing direction)
 
         if (rotate == 0 && seesPlayer && aimAlignment > 0.9f) // held correct aim
         {
-            AddReward(0.004f); 
+            AddReward(0.01f); 
         }
         else if (rotate != 0 && aimAlignment > 0.9f) // rotated away from perfect aim
         {
-            AddReward(-0.003f); 
+            AddReward(-0.01f); 
         }
 
         if (seesPlayer && aimAlignment > lastAimAlignment)
@@ -181,8 +199,13 @@ public class MoveAgent : Agent
             AddReward(0.003f);
         }
 
+        if (rotate != 0 && rotate != lastRotate)
+        {
+            AddReward(-0.002f);
+        }
+
         lastAimAlignment = aimAlignment;
-        // lastRotate = rotate;
+        lastRotate = rotate;
 
         if (seesPlayer)
         {

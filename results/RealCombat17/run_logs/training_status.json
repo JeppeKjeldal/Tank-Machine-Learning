@@ -1,0 +1,29 @@
+{
+    "MoveAgent": {
+        "checkpoints": [
+            {
+                "steps": 300036,
+                "file_path": "results\\RealCombat17\\MoveAgent\\MoveAgent-300036.onnx",
+                "reward": 541.2056820988655,
+                "creation_time": 1777226845.0365162,
+                "auxillary_file_paths": [
+                    "results\\RealCombat17\\MoveAgent\\MoveAgent-300036.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 300036,
+            "file_path": "results\\RealCombat17\\MoveAgent.onnx",
+            "reward": 541.2056820988655,
+            "creation_time": 1777226845.0365162,
+            "auxillary_file_paths": [
+                "results\\RealCombat17\\MoveAgent\\MoveAgent-300036.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "1.1.0",
+        "torch_version": "2.2.2+cpu"
+    }
+}
